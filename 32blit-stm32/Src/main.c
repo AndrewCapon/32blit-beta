@@ -147,6 +147,61 @@ int main(void)
   qspi_init();
 #endif
 
+
+	#define TEST_SIZE (256)
+  volatile uint8_t testBuffer[TEST_SIZE];
+
+  // test data
+  for(uint32_t u = 0; u < TEST_SIZE; u++)
+  {
+  	testBuffer[u]=0;
+  }
+
+//	HAL_StatusTypeDef res = qspi_write_buffer(0, testBuffer, TEST_SIZE);
+//	if(res!=HAL_OK)
+//		printf("Write Error\r\n");
+
+  HAL_StatusTypeDef res = qspi_read_buffer(0, testBuffer, TEST_SIZE);
+	if(res!=HAL_OK)
+		printf("Read Error\r\n");
+
+
+
+//  while(1)
+//  {
+//		uint32_t uBlocks = (32*1024*1024) / TEST_SIZE;
+//		uint32_t uStart = HAL_GetTick();
+//		uint32_t uAddress = 0;
+//		while(uBlocks)
+//		{
+//			HAL_StatusTypeDef res = qspi_read_buffer(uAddress, testBuffer, TEST_SIZE);
+//			if(res!=HAL_OK)
+//				printf("Read Error\r\n");
+//
+//			uAddress+=TEST_SIZE;
+//			uBlocks--;
+//		}
+//		uint32_t uEnd = HAL_GetTick();
+//		printf("Read test took %lums\n\r", uEnd-uStart);
+//  }
+
+  qspi_enable_memorymapped_mode();
+	while(1)
+	{
+		uint32_t uBlocks = (32*1024*1024) / TEST_SIZE;
+		uint32_t uStart = HAL_GetTick();
+		uint8_t *pAddress = 0x90000000;
+
+		while(uBlocks)
+		{
+			memcpy(testBuffer, pAddress, TEST_SIZE);
+			pAddress+=TEST_SIZE;
+			uBlocks--;
+		}
+		uint32_t uEnd = HAL_GetTick();
+		printf("Read test took %lums\n\r", uEnd-uStart);
+	}
+
   blit_init();
 
   // add CDC handler to reset device on receiving "_RST"

@@ -484,6 +484,8 @@ CDCCommandHandler::StreamResult FlashLoader::StreamData(CDCDataStream &dataStrea
 								{
 									// save data
 									volatile uint32_t uPage = (m_uParseIndex / PAGE_SIZE);
+//									for(uint32_t u = 0; u < 256; u++)
+//											m_buffer[u] = u;
 									if(!FlashData(uPage*PAGE_SIZE, m_buffer, uWriteLen))
 									{
 										printf("Failed to write to flash\n\r");
