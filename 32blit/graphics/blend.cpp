@@ -46,6 +46,75 @@ namespace blit {
     } while (--cnt);
   }
 
+  void RGBA_RGB_OPTIMIZED(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt) {
+    uint8_t* d = dest->data + (off * 3);
+    uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;    
+  
+    if(m)
+    {
+    	do {
+				uint16_t a = alpha(pen->a, *m++, dest->alpha);
+
+				if (a >= 255) {
+					*d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
+				} else if (a > 0) {
+					*d = blend(pen->r, *d, a); d++;
+					*d = blend(pen->g, *d, a); d++;
+					*d = blend(pen->b, *d, a); d++;
+				}else{
+					d += 3;
+				}
+			} while (--cnt);
+    }
+    else
+    {
+    	uint16_t a = alpha(pen->a, dest->alpha);
+    	if (a >= 255)
+    	{
+    		uint32_t uDuals = (cnt/2);
+    		if(uDuals)
+    		{
+//    			uint16_t uW1 = (pen->r<<8) | pen->g;
+//    			uint16_t uW2 = (pen->b<<8) | pen->r;
+//    			uint16_t uW3 = (pen->g<<8) | pen->b;
+
+    			// messed up endianess
+    			uint16_t uW1 = (pen->g<<8) | pen->r;
+    			uint16_t uW2 = (pen->r<<8) | pen->b;
+    			uint16_t uW3 = (pen->b<<8) | pen->g;
+
+    			uint16_t *pD = (uint16_t *)d;
+
+    			while(uDuals--)
+    			{
+    				*pD++ = uW1;
+    				*pD++ = uW2;
+    				*pD++ = uW3;
+    			}
+    			cnt = cnt%2;
+    			d = (uint8_t *)pD;
+    		}
+
+    		while(cnt--)
+    		{
+          *d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
+    		}
+    	}
+    	else
+    	{
+    		if(a >= 0)
+    		{
+    			while(cnt--)
+    			{
+            *d = blend(pen->r, *d, a); d++;
+            *d = blend(pen->g, *d, a); d++;
+            *d = blend(pen->b, *d, a); d++;
+    			}
+    		}
+    	}
+    }
+  }
+
   void RGBA_RGB(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt) {
     uint8_t* d = dest->data + (off * 3);
     uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;    

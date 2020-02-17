@@ -104,6 +104,8 @@ namespace blit {
     // blend functions
     blit::PenBlendFunc              pbf;
     blit::BlitBlendFunc             bbf;
+    blit::PenBlendFunc              pbf_opt;
+    blit::BlitBlendFunc             bbf_opt;
     
     std::vector<Surface *>          mipmaps;                  // TODO: probably too niche/specific to attach directly to surface
 
@@ -133,6 +135,7 @@ namespace blit {
     void v_span(Point p, int16_t c);
     void h_span(Point p, int16_t c);
     void rectangle(const Rect &r);
+    void rectangle_optimised(const Rect &r);
     void circle(const Point &c, int32_t r);
 
     void line(const Point&p1, const Point&p2);
