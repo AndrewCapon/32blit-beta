@@ -2,9 +2,10 @@
     "version": "0.2.0",
     "configurations": [
        {
-            "name": "32blit-stm32 Debug",
+            "name": "32blit-stm32 Debug loader",
             "type": "cppdbg",
             "request": "launch",
+            "preLaunchTask": "flash loader",
             "logging": {
                 "moduleLoad": true,
                 "trace": true,
