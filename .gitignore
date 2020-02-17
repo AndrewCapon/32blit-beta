@@ -340,7 +340,6 @@ build.*/
 build/
 
 # STM32 CubeMX Project Output (should be manually synced to 32blit-stm32 tree)
-.vscode/
 hardware/.mxproject
 hardware/Drivers/
 hardware/Inc/
