@@ -34,6 +34,19 @@ namespace blit {
     }
   }
 
+  void Surface::rectangle_optimised(const Rect &r) {
+    Rect cr = clip.intersection(r);
+    if (cr.empty())
+      return;
+
+    uint32_t o = offset(cr);
+
+    for (uint8_t y = cr.y; y < cr.y + cr.h; y++) {
+      pbf_opt(&pen, this, o, cr.w);
+      o += bounds.w;
+    }
+  }
+
   /**
    * Put a single pixel in the current pen colour.
    *

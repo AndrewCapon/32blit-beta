@@ -34,20 +34,28 @@ namespace blit {
     
     switch (format) {
     case PixelFormat::RGBA: {
-      pbf = RGBA_RGBA;
-      bbf = RGBA_RGBA;
+      pbf 		= RGBA_RGBA;
+      bbf 		= RGBA_RGBA;
+      pbf_opt = RGBA_RGBA;
+      bbf_opt = RGBA_RGBA;
     }break;
     case PixelFormat::RGB: {
-      pbf = RGBA_RGB;
-      bbf = RGBA_RGB;
+      pbf 		= RGBA_RGB;
+      bbf 		= RGBA_RGB;
+      pbf_opt = RGBA_RGB_OPTIMIZED;
+      bbf_opt = RGBA_RGB_OPTIMIZED;
     }break;
     case PixelFormat::P: {
-      pbf = P_P;
-      bbf = P_P;
+      pbf 		= P_P;
+      bbf 		= P_P;
+      pbf_opt = P_P;
+      bbf_opt = P_P;
     }break;
     case PixelFormat::M: {
-      pbf = M_M;
-      bbf = M_M;
+      pbf 		= M_M;
+      bbf 		= M_M;
+      pbf_opt = M_M;
+      bbf_opt	= M_M;
     }break;
     }
   }

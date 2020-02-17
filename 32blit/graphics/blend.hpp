@@ -17,6 +17,7 @@ namespace blit {
 
   extern void RGBA_RGBA(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt);
   extern void RGBA_RGB(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt);
+  extern void RGBA_RGB_OPTIMIZED(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt);
   extern void P_P(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt);
   extern void M_M(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt);
 
