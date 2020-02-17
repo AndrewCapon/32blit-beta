@@ -44,7 +44,7 @@
             }
         },
         {
-          "name": "32blit-stm32 Debug profiler",
+          "name": "32blit-stm32 Debug graphics-benchmark",
           "type": "cppdbg",
           "request": "launch",
           "preLaunchTask": "flash profiler",
@@ -55,7 +55,7 @@
               "programOutput": true,
               "exceptions": true
           },
-          "program": "${workspaceFolder}/build/examples/profiler-test/profiler-test.elf",
+          "program": "${workspaceFolder}/build/examples/graphics-benchmark/graphics-benchmark.elf",
           "targetArchitecture": "arm",
           "args": [],
           "stopAtEntry": true,
