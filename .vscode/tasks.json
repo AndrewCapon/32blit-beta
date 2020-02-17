@@ -12,6 +12,17 @@
         "clear": true
       },
       "problemMatcher": []
-    }
+    },
+    {
+      "label": "flash profiler",
+      "group": "build",
+      "type": "shell",
+      "command": "/Development/32blit/32BlitMacOpenOCD/OpenOCD/openocd -s /Development/32blit/32BlitMacOpenOCD -s /Development/32blit/32BlitMacOpenOCD/OpenOCD/tcl -f flashloaderdap.cfg -c \"program ${workspaceFolder}/build/examples/profiler-test/profiler-test.elf verify\"  -c \"reset init\" -c \"sleep 100\" -c \"reset run\" -c \"exit\"",
+      "presentation": {
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+
   ]
 }
