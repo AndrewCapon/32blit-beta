@@ -117,6 +117,14 @@
 				</configuration>
 			</storageModule>
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+			<storageModule moduleId="de.marw.cdt.cmake.core.settings">
+				<linux command="cmake" generator="UnixMakefiles" use-default="true">
+					<defs>
+						<def name="CMAKE_TOOLCHAIN_FILE" type="STRING" val="/Development/32blit/32blit-beta/32blit.toolchain"/>
+						<def name="SMAKE_BUILD_TYPE" type="STRING" val="Release"/>
+					</defs>
+				</linux>
+			</storageModule>
 		</cconfiguration>
 		<cconfiguration id="de.marw.cmake.cdt.lsp.config.debug.1401709244.503208226">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="de.marw.cmake.cdt.lsp.config.debug.1401709244.503208226" moduleId="org.eclipse.cdt.core.settings" name="MinSizeRel">
@@ -138,7 +146,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="de.marw.cmake.cdt.lsp.buildArtefactType.cmake" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=de.marw.cmake.cdt.lsp.buildArtefactType.cmake,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" description="MinSizeRel" id="de.marw.cmake.cdt.lsp.config.debug.1401709244.503208226" name="MinSizeRel" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=" parent="de.marw.cmake.cdt.lsp.config.debug">
+				<configuration artifactName="${ProjName}" buildArtefactType="de.marw.cmake.cdt.lsp.buildArtefactType.cmake" buildProperties="org.eclipse.cdt.build.core.buildArtefactType=de.marw.cmake.cdt.lsp.buildArtefactType.cmake,org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug" description="MinSizeRel" id="de.marw.cmake.cdt.lsp.config.debug.1401709244.503208226" name="MinSizeRel" optionalBuildProperties="org.eclipse.cdt.docker.launcher.containerbuild.property.volumes=,org.eclipse.cdt.docker.launcher.containerbuild.property.selectedvolumes=" parent="de.marw.cmake.cdt.lsp.config.debug">
 					<folderInfo id="de.marw.cmake.cdt.lsp.config.debug.1401709244.503208226." name="/" resourcePath="">
 						<toolChain id="de.marw.cmake.cdt.lsp.config.debug.toolChain.1647511346" name="CMake driven" superClass="de.marw.cmake.cdt.lsp.config.debug.toolChain">
 							<targetPlatform id="de.marw.cmake.cdt.lsp.targetPlatform.cmake.1864556774" name="Any Platform" superClass="de.marw.cmake.cdt.lsp.targetPlatform.cmake"/>
