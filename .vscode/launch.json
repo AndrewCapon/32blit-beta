@@ -44,7 +44,49 @@
             }
         },
         {
-          "name": "32blit-stm32 Debug profiler",
+          "name": "32blit-stm32 cmake target",
+          "type": "cppdbg",
+          "request": "launch",
+          "preLaunchTask": "flash cmake target",
+          "logging": {
+              "moduleLoad": true,
+              "trace": true,
+              "engineLogging": true,
+              "programOutput": true,
+              "exceptions": true
+          },
+          "program": "${command:cmake.launchTargetPath}",
+          "targetArchitecture": "arm",
+          "args": [],
+          "stopAtEntry": false,
+          "cwd": "${workspaceFolder}",
+          "environment": [],
+          "externalConsole": false,
+          "debugServerArgs": "-s /Development/32blit/32BlitMacOpenOCD -s /Development/32blit/32BlitMacOpenOCD/OpenOCD/tcl -f debug.cfg",
+          "serverLaunchTimeout" : 20000,
+          "serverStarted": "Info : Listening on port",
+          "filterStderr": true,
+          "setupCommands": [
+              { "text": "-target-select remote localhost:3333", "description": "connect to target", "ignoreFailures": false },
+              { "text": "-environment-cd ${workspaceRoot}"},
+              { "text": "-interpreter-exec console \"monitor halt\"", "ignoreFailures": false },
+              { "text": "-interpreter-exec console \"monitor reset init\"", "ignoreFailures": false },
+          ],
+          "osx": {
+              "MIMode": "gdb",
+              "MIDebuggerPath": "arm-none-eabi-gdb",
+              "debugServerPath": "/Development/32blit/32BlitMacOpenOCD/OpenOCD/openocd",
+              "serverStarted": "Info : Listening on port",
+          },
+          "windows": {
+              "MIMode": "gdb",
+              "miDebuggerPath": "",
+              "debugServerPath": "",
+              "serverStarted": "Info : Listening on port",
+          }
+      },
+        {
+          "name": "32blit-stm32 Debug graphics-benchmark",
           "type": "cppdbg",
           "request": "launch",
           "preLaunchTask": "flash profiler",
@@ -55,7 +97,7 @@
               "programOutput": true,
               "exceptions": true
           },
-          "program": "${workspaceFolder}/build/examples/profiler-test/profiler-test.elf",
+          "program": "${workspaceFolder}/build/examples/graphics-benchmark/graphics-benchmark.elf",
           "targetArchitecture": "arm",
           "args": [],
           "stopAtEntry": true,
