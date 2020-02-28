@@ -146,10 +146,9 @@ int main(void)
 #if (INITIALISE_QSPI==1)
   qspi_init();
 
-  if(blit_get_backup_value(BACKUP_START_STATE) && !blit_get_backup_value(BACKUP_FORCE_FIRMWARE))
+  if(blit_get_backup_value(BACKUP_START_STATE_INDEX) == BACKUP_START_STATE_GAME)
     blit_switch_execution();
 
-  blit_set_backup_value(BACKUP_FORCE_FIRMWARE, 0);
 #endif
 
 

@@ -10,10 +10,11 @@
 
 bool CDCResetHandler::StreamInit(CDCFourCC uCommand)
 {
-  // force next reset to bool to firmware.
-  blit_set_backup_value(BACKUP_FORCE_FIRMWARE, 1);
-
+#if EXTERNAL_LOAD_ADDRESS == 0x90000000
 	NVIC_SystemReset();
+#else
+  blit_switch_execution(); 
+#endif  
 
 	return false;
 }

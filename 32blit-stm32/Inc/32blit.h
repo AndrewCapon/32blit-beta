@@ -44,11 +44,10 @@ void blit_menu();
 extern void blit_enable_ADC();
 extern void blit_disable_ADC();
 
-// BACKUP_START_STATE 0 = firmware, 1 = game. Needs to be set by main menu
-#define BACKUP_START_STATE    (0)
-
-// BACKUP_FORCE_FIRMWARE - 0 = no, 1 = yes. Overrides BACKUP_START_STATE for programming/saving reset switch
-#define BACKUP_FORCE_FIRMWARE (1)
+// BACKUP_START_STATE_INDEX 0 = firmware, 1 = game. Needs to be set by main menu
+#define BACKUP_START_STATE_INDEX    (0)
+#define BACKUP_START_STATE_FIRMWARE (0)
+#define BACKUP_START_STATE_GAME     (1)
 
 
 extern void blit_set_backup_value(uint16_t uIndex, uint32_t uValue);

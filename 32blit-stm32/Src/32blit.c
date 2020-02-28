@@ -288,11 +288,6 @@ void blit_menu_update(uint32_t time) {
         break;
       case SWITCH_EXE:
         if(button_a){
-#if EXTERNAL_LOAD_ADDRESS == 0x90000000
-        blit_set_backup_value(BACKUP_START_STATE, 1);
-#else
-        blit_set_backup_value(BACKUP_START_STATE, 0);
-#endif
           blit::switch_execution();
         }
         break;
@@ -626,6 +621,13 @@ pFunction JumpToApplication;
 
 void blit_switch_execution(void)
 {
+  // set backup value
+#if EXTERNAL_LOAD_ADDRESS == 0x90000000
+        blit_set_backup_value(BACKUP_START_STATE_INDEX, BACKUP_START_STATE_GAME);
+#else
+        blit_set_backup_value(BACKUP_START_STATE_INDEX, BACKUP_START_STATE_FIRMWARE);
+#endif
+
   // Stop the ADC DMA
   HAL_ADC_Stop_DMA(&hadc1);
   HAL_ADC_Stop_DMA(&hadc3);
