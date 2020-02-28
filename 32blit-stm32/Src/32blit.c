@@ -116,6 +116,21 @@ void blit_update_volume() {
     blit::volume = (uint16_t)(65535.0f * log(1.0f + (volume_log_base - 1.0f) * persist.volume) / log(volume_log_base));
 }
 
+void blit_set_backup_value(uint16_t uIndex, uint32_t uValue)
+{
+  if(uIndex < 1024)
+    *(__IO uint32_t *) (D3_BKPSRAM_BASE +(uIndex*4)) = uValue;
+}
+
+uint32_t blit_get_backup_value(uint16_t uIndex)
+{
+  uint32_t uResult = 0;
+  if(uIndex < 1024)
+    uResult = *(__IO uint32_t *) (D3_BKPSRAM_BASE + (uIndex*4));
+
+  return uResult;
+}
+
 void blit_init() {
     if(persist.magic_word != persistence_magic_word) {
       // Set persistent defaults if the magic word does not match
@@ -139,6 +154,13 @@ void blit_init() {
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT->CYCCNT = 0;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
+
+    // enable backup sram
+    __HAL_RCC_RTC_ENABLE();
+    __HAL_RCC_BKPRAM_CLK_ENABLE();
+    HAL_PWR_EnableBkUpAccess(); 
+    HAL_PWREx_EnableBkUpReg(); 
 
     f_mount(&filesystem, "", 1);  // this shouldn't be necessary here right?
     msa301_init(&hi2c4, MSA301_CONTROL2_POWR_MODE_NORMAL, 0x00, MSA301_CONTROL1_ODR_62HZ5);
@@ -266,6 +288,11 @@ void blit_menu_update(uint32_t time) {
         break;
       case SWITCH_EXE:
         if(button_a){
+#if EXTERNAL_LOAD_ADDRESS == 0x90000000
+        blit_set_backup_value(BACKUP_START_STATE, 1);
+#else
+        blit_set_backup_value(BACKUP_START_STATE, 0);
+#endif
           blit::switch_execution();
         }
         break;

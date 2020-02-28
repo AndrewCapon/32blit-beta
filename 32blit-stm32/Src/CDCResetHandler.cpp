@@ -6,9 +6,13 @@
  */
 
 #include "CDCResetHandler.h"
+#include "32blit.h"
 
 bool CDCResetHandler::StreamInit(CDCFourCC uCommand)
 {
+  // force next reset to bool to firmware.
+  blit_set_backup_value(BACKUP_FORCE_FIRMWARE, 1);
+
 	NVIC_SystemReset();
 
 	return false;

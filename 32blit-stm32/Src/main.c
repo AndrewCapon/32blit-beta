@@ -140,14 +140,19 @@ int main(void)
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
 
-
-  //NVIC_SetPriority(SysTick_IRQn, 0x0);
+  blit_init();
 
 #if (INITIALISE_QSPI==1)
   qspi_init();
+
+  if(blit_get_backup_value(BACKUP_START_STATE) && !blit_get_backup_value(BACKUP_FORCE_FIRMWARE))
+    blit_switch_execution();
+
+  blit_set_backup_value(BACKUP_FORCE_FIRMWARE, 0);
 #endif
 
-  blit_init();
+
+
 
   // add CDC handler to reset device on receiving "_RST"
 	g_commandStream.AddCommandHandler(CDCCommandHandler::CDCFourCCMake<'_', 'R', 'S', 'T'>::value, &g_resetHandler);
