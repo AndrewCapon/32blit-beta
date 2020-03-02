@@ -269,7 +269,13 @@ static int8_t CDC_Control_HS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_HS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 11 */
+#if SIMPLE_USB
+  if(*Len)
+    g_commandStream.USBDataReceived(*Len);
+  else
+		USBD_CDC_ReceivePacket(&hUsbDeviceHS);
 
+#else
 	// release the old write buffer for reading and set length
 	g_commandStream.ReleaseFifoWriteBuffer(*Len);
 
@@ -285,7 +291,7 @@ static int8_t CDC_Receive_HS(uint8_t* Buf, uint32_t *Len)
 //		g_commandStream.Stream(Buf, *Len);
 //
 //	USBD_CDC_ReceivePacket(&hUsbDeviceHS);
-
+#endif
 
   return (USBD_OK);
   /* USER CODE END 11 */

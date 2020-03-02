@@ -428,7 +428,7 @@ CDCCommandHandler::StreamResult FlashLoader::StreamData(CDCDataStream &dataStrea
 										qspi_chip_erase();
 									break;
 
-									default:
+									default: 
 									break;
 								}
 							}

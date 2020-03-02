@@ -49,6 +49,10 @@ public:
 		return m_uFifoUsedCount==CDC_FIFO_BUFFERS;
 	}
 
+#if SIMPLE_USB
+  void            USBDataReceived(uint8_t uLen);
+  CDCFifoElement  *GetUSBData(void);
+#endif
 
 private:
 	typedef enum { stDetect, stDetectCommandWord, stDispatch, stProcessing, stError } StreamState;
@@ -71,10 +75,11 @@ private:
 
 
 	CDCFifoElement m_fifoElements[CDC_FIFO_BUFFERS];
-	uint8_t				 m_uFifoReadPos;
-	uint8_t				 m_uFifoWritePos;
-	uint8_t				 m_uFifoUsedCount;
+  uint8_t				 m_uFifoReadPos;
+  uint8_t				 m_uFifoWritePos;
+  uint8_t				 m_uFifoUsedCount;
 
+  
 	bool					m_bNeedsUSBResume;
 
 

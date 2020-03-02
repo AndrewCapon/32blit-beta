@@ -31,6 +31,15 @@ void CDCCommandStream::LogTimeTaken(CDCCommandHandler::StreamResult result, uint
 
 void CDCCommandStream::Stream(void)
 {
+#if SIMPLE_USB
+  CDCFifoElement *pElement = GetUSBData();
+  if(pElement)
+  {
+		Stream(pElement->m_data, pElement->m_uLen);
+    pElement->m_uLen = 0;
+    USBD_CDC_ReceivePacket(&hUsbDeviceHS);
+  }
+#else  
 	while(CDCFifoElement *pElement = GetFifoReadElement())
 	{
 		if(pElement->m_uLen)
@@ -45,6 +54,7 @@ void CDCCommandStream::Stream(void)
 	  USBD_CDC_SetRxBuffer(&hUsbDeviceHS, GetFifoWriteBuffer());
 		USBD_CDC_ReceivePacket(&hUsbDeviceHS);
 	}
+#endif
 }
 
 uint8_t CDCCommandStream::Stream(uint8_t *data, uint32_t len)
@@ -215,4 +225,20 @@ void CDCCommandStream::ReleaseFifoReadElement(void)
 		m_uFifoReadPos = 0;
 	m_uFifoUsedCount--;
 }
+
+#if SIMPLE_USB
+void CDCCommandStream::USBDataReceived(uint8_t uLen)
+{
+  m_fifoElements[0].m_uLen = uLen;
+}
+
+CDCFifoElement  *CDCCommandStream::GetUSBData(void)
+{
+	CDCFifoElement *pElement = NULL;
+	if(m_fifoElements[0].m_uLen)
+		pElement = &m_fifoElements[0];
+	return pElement;
+}
+#endif
+
 

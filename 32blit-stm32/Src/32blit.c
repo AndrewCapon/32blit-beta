@@ -507,7 +507,7 @@ void blit_process_input() {
     // Do tilt every 8th tick of this function
     // TODO: Find a better way to handle this
     // Read accelerometer
-    msa301_get_accel(&hi2c4, &acceleration_data_buffer[tilt_sample_offset * 3]);
+    //msa301_get_accel(&hi2c4, &acceleration_data_buffer[tilt_sample_offset * 3]);
 
     tilt_sample_offset += 1;
     if(tilt_sample_offset >= ACCEL_OVER_SAMPLE){
