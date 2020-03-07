@@ -46,6 +46,8 @@
 #include "CDCCommandStream.h"
 #include "USBManager.h"
 
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -161,6 +163,14 @@ int main(void)
 
   // add CDC handler to log info device on receiving "INFO"
 	g_commandStream.AddCommandHandler(CDCCommandHandler::CDCFourCCMake<'I', 'N', 'F', 'O'>::value, &g_infoHandler);
+
+  DMA2D_HandleTypeDef hdma2d;
+  hdma2d.Instance = DMA2D;
+  hdma2d.Init.Mode = DMA2D_R2M;
+  hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
+  hdma2d.Init.OutputOffset = 0;
+  HAL_DMA2D_Init(&hdma2d);
+  HAL_DMA2D_Start(&hdma2d, 0, 0, 320, 240);
 
   /* USER CODE END 2 */
 

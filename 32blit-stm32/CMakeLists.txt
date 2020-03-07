@@ -37,6 +37,7 @@ list(APPEND SOURCES
 	Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pcd_ex.c
 	Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_jpeg.c
 	Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c
+	Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dma2d.c
 	Middlewares/Third_Party/FatFs/src/diskio.c
 	Middlewares/Third_Party/FatFs/src/ff.c
 	Middlewares/Third_Party/FatFs/src/ff_gen_drv.c

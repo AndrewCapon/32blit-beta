@@ -7,8 +7,11 @@
 
 #ifndef SRC_CDCDATASTREAM_H_
 #define SRC_CDCDATASTREAM_H_
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wregister"
 #include "stm32h7xx_hal.h"
+#pragma GCC diagnostic pop
+
 #include <cstring>
 #include <streambuf>
 #include <istream>
