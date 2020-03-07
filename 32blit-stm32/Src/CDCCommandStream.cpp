@@ -31,20 +31,48 @@ void CDCCommandStream::LogTimeTaken(CDCCommandHandler::StreamResult result, uint
 
 void CDCCommandStream::Stream(void)
 {
-	while(CDCFifoElement *pElement = GetFifoReadElement())
-	{
-		if(pElement->m_uLen)
-			Stream(pElement->m_data, pElement->m_uLen);
-		ReleaseFifoReadElement();
-	}
+  static uint32_t uLastResumeTime = HAL_GetTick();
 
-	// restart USB CDC if fifo was full
-	if(m_bNeedsUSBResume && m_uFifoUsedCount == 0)
-	{
+  if(m_bNeedsUSBResume) // FIFO Full, so empty and resume USB
+  {
+    while(CDCFifoElement *pElement = GetFifoReadElement())
+    {
+      if(pElement->m_uLen)
+        Stream(pElement->m_data, pElement->m_uLen);
+      ReleaseFifoReadElement();
+    }
 		m_bNeedsUSBResume = false;
 	  USBD_CDC_SetRxBuffer(&hUsbDeviceHS, GetFifoWriteBuffer());
 		USBD_CDC_ReceivePacket(&hUsbDeviceHS);
-	}
+    uLastResumeTime = HAL_GetTick();
+  }
+  else
+  {
+    if(HAL_GetTick() > uLastResumeTime + 100) // USB Stalled, empty FIFO
+    {
+      // empty fifo
+      while(CDCFifoElement *pElement = GetFifoReadElement())
+      {
+        if(pElement->m_uLen)
+          Stream(pElement->m_data, pElement->m_uLen);
+        ReleaseFifoReadElement();
+      }
+    }
+  }
+	// while(CDCFifoElement *pElement = GetFifoReadElement())
+	// {
+	// 	if(pElement->m_uLen)
+	// 		Stream(pElement->m_data, pElement->m_uLen);
+	// 	ReleaseFifoReadElement();
+	// }
+
+	// // restart USB CDC if fifo was full
+	// if(m_bNeedsUSBResume && m_uFifoUsedCount == 0)
+	// {
+	// 	m_bNeedsUSBResume = false;
+	//   USBD_CDC_SetRxBuffer(&hUsbDeviceHS, GetFifoWriteBuffer());
+	// 	USBD_CDC_ReceivePacket(&hUsbDeviceHS);
+	// }
 }
 
 uint8_t CDCCommandStream::Stream(uint8_t *data, uint32_t len)
@@ -178,21 +206,25 @@ uint32_t CDCCommandStream::GetTimeTaken(void)
 uint8_t	*CDCCommandStream::GetFifoWriteBuffer(void)
 {
 	uint8_t *pData = NULL;
-	if(m_uFifoUsedCount < CDC_FIFO_BUFFERS - 1)
+	if(m_uFifoUsedCount < CDC_FIFO_BUFFERS-1)
 	{
 		pData = m_fifoElements[m_uFifoWritePos].m_data;
+#ifdef FIFO_DEBUG
+    m_uWritePacketsGot++;
+#endif  
 	}
 	else
 		m_bNeedsUSBResume = true;
-
-	if(!pData)
-		volatile int bp = 1;
 
 	return pData;
 }
 
 void	CDCCommandStream::ReleaseFifoWriteBuffer(uint8_t uLen)
 {
+#ifdef FIFO_DEBUG
+  m_uWritePacketsReleased++;
+  m_uWriteBytesReceived += uLen;
+#endif  
 	m_fifoElements[m_uFifoWritePos].m_uLen = uLen;
 	m_uFifoWritePos++;
 	if(m_uFifoWritePos == CDC_FIFO_BUFFERS)
@@ -203,16 +235,50 @@ void	CDCCommandStream::ReleaseFifoWriteBuffer(uint8_t uLen)
 CDCFifoElement  *CDCCommandStream::GetFifoReadElement(void)
 {
 	CDCFifoElement *pElement = NULL;
+
 	if(m_uFifoUsedCount)
+  {
 		pElement = &m_fifoElements[m_uFifoReadPos];
+#ifdef FIFO_DEBUG
+    m_uReadPacketsGot++;
+#endif  
+  }
 	return pElement;
 }
 
 void CDCCommandStream::ReleaseFifoReadElement(void)
 {
+	m_uFifoUsedCount--;
+#ifdef FIFO_DEBUG
+  m_uReadPacketsReleased++;
+#endif  
 	m_uFifoReadPos++;
 	if(m_uFifoReadPos == CDC_FIFO_BUFFERS)
 		m_uFifoReadPos = 0;
-	m_uFifoUsedCount--;
 }
 
+#ifdef NDEBUG
+  int a = 1;
+#else
+  int a = 2;
+#endif
+
+#ifdef FIFO_DEBUG
+void CDCCommandStream::ResetDebugData()
+{
+  // m_uWritePacketsGot = 1;
+  // m_uWritePacketsReleased = 0;
+  // m_uReadPacketsGot = 0;
+  // m_uReadPacketsReleased = 0;
+  // m_uWriteBytesReceived = 0;
+}
+
+void CDCCommandStream::DisplayDebugData()
+{
+  printf("Write: \tgot:   %8lu,\treleased: %8lu,\tbytes: %8lu\n\r", m_uWritePacketsGot, m_uWritePacketsReleased, m_uWriteBytesReceived);
+  printf("Read:  \tgot:   %8lu,\treleased: %8lu\n\r", m_uReadPacketsGot, m_uReadPacketsReleased);
+  printf("Fifo:  \tcount: %8u,\tread:     %8u,\tWrite: %8u\n\r", m_uFifoUsedCount, m_uFifoReadPos, m_uFifoWritePos);
+  printf("\n");
+  ResetDebugData();
+}
+#endif

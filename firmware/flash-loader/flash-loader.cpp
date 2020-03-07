@@ -172,6 +172,20 @@ bool FlashLoader::Flash(const char *pszFilename)
 // Render() Call relevant render based on state
 void FlashLoader::Render(uint32_t time)
 {
+  m_uLastRenderTime = time;
+  if(m_state == stSaveFile || m_state == stFlashCDC)
+  {
+    if(m_uLastStreamTime+1000 < m_uLastRenderTime)
+    {
+      // 1 second timeout
+      printf("Status: TIMEOUT\n\r");
+      m_state = stFlashFile; 
+#ifdef FIFO_DEBUG      
+      g_commandStream.DisplayDebugData();
+#endif
+    }
+  }
+
 	switch(m_state)
 	{
 		case stFlashFile:
@@ -444,6 +458,8 @@ bool FlashLoader::SaveData(uint8_t *pBuffer, uint32_t uLen)
 // stData     : The binary data (.bin file)
 CDCCommandHandler::StreamResult FlashLoader::StreamData(CDCDataStream &dataStream)
 {
+  m_uLastStreamTime = m_uLastRenderTime;
+
 	CDCCommandHandler::StreamResult result = srContinue;
 	uint8_t byte;
 	while(dataStream.GetStreamLength() && result == srContinue)
@@ -561,6 +577,10 @@ CDCCommandHandler::StreamResult FlashLoader::StreamData(CDCDataStream &dataStrea
 										m_state = stFlashFile;
 										if(result != srError)
 											result = srFinish;
+#ifdef FIFO_DEBUG
+                    printf("\nStatus: SUCCESS\n\r");
+                    g_commandStream.DisplayDebugData();
+#endif
 									}
 								break;
 

@@ -71,14 +71,25 @@ private:
 
 
 	CDCFifoElement m_fifoElements[CDC_FIFO_BUFFERS];
-	uint8_t				 m_uFifoReadPos;
-	uint8_t				 m_uFifoWritePos;
-	uint8_t				 m_uFifoUsedCount;
+	uint8_t			 m_uFifoReadPos;
+	uint8_t			 m_uFifoWritePos;
+	uint8_t			 m_uFifoUsedCount;
 
 	bool					m_bNeedsUSBResume;
 
 
 	void 			LogTimeTaken(CDCCommandHandler::StreamResult result, uint32_t uBytesHandled);
+
+#ifdef FIFO_DEBUG
+  uint32_t    m_uWritePacketsGot;
+  uint32_t    m_uWritePacketsReleased;
+  uint32_t    m_uReadPacketsGot;
+  uint32_t    m_uReadPacketsReleased;
+  uint32_t    m_uWriteBytesReceived;
+public:
+  void ResetDebugData();
+  void DisplayDebugData();
+#endif
 
 };
 

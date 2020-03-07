@@ -28,9 +28,11 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wregister"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx.h"  // Added to help Eclipse indexer
-
+#pragma GCC diagnostic pop
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 

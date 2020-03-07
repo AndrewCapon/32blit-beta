@@ -70,4 +70,6 @@ private:
 
 	float m_fPercent;
 
+  uint32_t m_uLastStreamTime = 0;
+  uint32_t m_uLastRenderTime = 0;
 };
