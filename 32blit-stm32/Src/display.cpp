@@ -4,6 +4,7 @@
 #include "32blit.hpp"
 
 #include "display.hpp"
+#include "engine/profiler.hpp"
 
 extern char __ltdc_start, __ltdc_end;
 extern char __fb_start, __fb_end;
@@ -61,9 +62,40 @@ namespace display {
     return screen;
   }
 
-  void dma2d_hires_flip(const Surface &source) {
-    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)(source.data), 320 * 240 * 3); 
+  ProfilerProbe probe("test", 300);
 
+  void dma2d_hires_flip(const Surface &source) {
+    probe.start();
+    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)(source.data), 320 * 240 * 3); 
+#define USEHAL
+#ifdef USEHAL    
+
+    static DMA2D_HandleTypeDef hdma2d; // Do not place on stack
+    // // first clear to black for testing
+    // hdma2d.Instance = DMA2D;
+    // hdma2d.Init.Mode = DMA2D_R2M;
+    // hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
+    // hdma2d.Init.OutputOffset = 0;
+    // HAL_DMA2D_Init(&hdma2d);
+
+    // HAL_DMA2D_Start(&hdma2d, 0, (uintptr_t)&__ltdc_start, 320, 240);
+    // HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+    hdma2d.Instance = DMA2D;
+    hdma2d.Init.Mode = DMA2D_M2M;
+    hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
+    hdma2d.Init.OutputOffset = 0;
+
+    hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+    hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB888;
+    hdma2d.LayerCfg[1].InputOffset = 0;
+
+    HAL_DMA2D_Init(&hdma2d);
+    HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+    HAL_DMA2D_Start(&hdma2d, (uintptr_t)source.data, (uintptr_t)&__ltdc_start, 320, 240);
+    HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+#else
     // set the transform type (clear bits 17..16 of control register)
     DMA2D->CR &= 0xfcff;
     // set target pixel format (clear bits 3..0 of foreground format register)
@@ -87,9 +119,95 @@ namespace display {
     while(DMA2D->CR & DMA2D_CR_START) {      
       // never gets here!
     }
+#endif    
+    probe.store_elapsed_us();
   }
 
   void dma2d_lores_flip(const Surface &source) {
+    probe.start();
+    static DMA2D_HandleTypeDef hdma2d; // Do not place on stack
+    SCB_CleanInvalidateDCache_by_Addr((uint32_t *)(source.data), 320 * 240 * 3); 
+
+    // first clear to black for testing
+    // hdma2d.Instance = DMA2D;
+    // hdma2d.Init.Mode = DMA2D_R2M;
+    // hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
+    // hdma2d.Init.OutputOffset = 0;
+    // HAL_DMA2D_Init(&hdma2d);
+
+    // HAL_DMA2D_Start(&hdma2d, 0, (uintptr_t)&__ltdc_start, 320, 240);
+    // HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+    // Half White
+    // hdma2d.Instance = DMA2D;
+    // hdma2d.Init.Mode = DMA2D_R2M;
+    // hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
+    // hdma2d.Init.OutputOffset = 0;
+    // HAL_DMA2D_Init(&hdma2d);
+
+    // HAL_DMA2D_Start(&hdma2d, 0xffffff, (uintptr_t)&__ltdc_start, 320, 120);
+    // HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+
+    hdma2d.Instance = DMA2D;
+    hdma2d.Init.Mode = DMA2D_M2M;
+    hdma2d.Init.ColorMode = DMA2D_OUTPUT_RGB888;
+    hdma2d.Init.LineOffsetMode = DMA2D_LOM_PIXELS;
+    hdma2d.Init.OutputOffset = 1;//160+320;
+
+    hdma2d.LayerCfg[1].AlphaMode = DMA2D_NO_MODIF_ALPHA;
+    hdma2d.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB888;
+    hdma2d.LayerCfg[1].InputOffset = 0;
+
+    HAL_DMA2D_Init(&hdma2d);
+    HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+
+    // these two as per ming to get bottom half of screen
+    HAL_DMA2D_Start(&hdma2d, (uintptr_t)source.data, (uintptr_t)&__ltdc_start+(320*120*3), 1, 160*120);
+    HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+    // // my implementation
+    HAL_DMA2D_Start(&hdma2d, (uintptr_t)source.data, (uintptr_t)&__ltdc_start+(320*120*3)+3, 1, 160*120);
+    HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+/////////////////////////////////////////// new stuff
+    // hdma2d.LayerCfg[1].InputOffset = 1;
+    // HAL_DMA2D_Init(&hdma2d);
+    // HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+    // HAL_DMA2D_Start(&hdma2d, (uintptr_t)&__ltdc_start+(320*120*3), (uintptr_t)&__ltdc_start+(320*120*3)+3, 1, 320*120);
+    // HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+///////////////////////////////////////////
+
+    // now we transfer screen to screen for every other row
+    hdma2d.Init.OutputOffset = 320;
+    hdma2d.LayerCfg[1].InputOffset = 0;
+    HAL_DMA2D_Init(&hdma2d);
+    HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+    HAL_DMA2D_Start(&hdma2d, (uintptr_t)&__ltdc_start+(320*120*3), (uintptr_t)&__ltdc_start, 320, 120);
+    HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+    // // now we duplicate each row
+    hdma2d.LayerCfg[1].InputOffset = 320;
+    HAL_DMA2D_Init(&hdma2d);
+    HAL_DMA2D_ConfigLayer(&hdma2d, 1);
+
+    HAL_DMA2D_Start(&hdma2d, (uintptr_t)&__ltdc_start, (uintptr_t)&__ltdc_start+(320*3), 320, 240);
+    HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+    probe.store_elapsed_us();
+    printf("lowres DMA2d time = %luus\n", probe.elapsed_metrics().uAvgElapsedUs);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // HAL_DMA2D_Start(&hdma2d, (uintptr_t)source.data, (uintptr_t)&__ltdc_start, 160,120);
+    // HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+    // HAL_DMA2D_Start(&hdma2d, (uintptr_t)source.data, (uintptr_t)&__ltdc_start+(320*3), 160,120);
+    // HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
+    // HAL_DMA2D_Start(&hdma2d, (uintptr_t)source.data, (uintptr_t)&__ltdc_start+(320*3), 160, 120);
+    // HAL_DMA2D_PollForTransfer(&hdma2d, 10);
+
     // this does not work... yet!
     /*SCB_CleanInvalidateDCache_by_Addr((uint32_t *)(source.data), 320 * 240 * 3); 
 
@@ -127,9 +245,12 @@ namespace display {
     uint32_t ltdc_buffer_size = 320 * 240 * 3;
 
     if(mode == ScreenMode::lores) {
-      //dma2d_lores_flip(source);
+//#define USEDMA
+#ifdef USEDMA         
+      dma2d_lores_flip(source);
       //screen.text(std::to_string(flip_time), minimal_font, Point(100,40));
-
+#else
+      probe.start();
       uint32_t flip_start = DWT->CYCCNT;
 
       uint8_t *s = (uint8_t *)source.data;
@@ -157,18 +278,22 @@ namespace display {
         }        
         d += 320 * 3;
       }
-      
+      probe.store_elapsed_us();
+      printf("lowres code time = %luus\n", probe.elapsed_metrics().uAvgElapsedUs);
+
+
       uint32_t flip_end = DWT->CYCCNT;
       flip_time = ((flip_end - flip_start) / 1000) * 1000;
+#endif      
     }else{
             
       //screen.text(std::to_string(flip_time), minimal_font, Point(140,40));
       //uint32_t flip_start = DWT->CYCCNT;
 
       // perform flip with dma2d transfer
+#ifdef USEDMA      
       dma2d_hires_flip(source);
-
-      /*
+#else
         // alternative soft implementation
         // copy the framebuffer data into the ltdc buffer, originally this
         // was done via memcpy but implementing it as a 32-bit copy loop
@@ -179,8 +304,7 @@ namespace display {
         while(c--) {
           *d++ = *s++;
         }
-      */
-
+#endif
       //uint32_t flip_end = DWT->CYCCNT;
       //flip_time = ((flip_end - flip_start) / 1000) * 1000;
 

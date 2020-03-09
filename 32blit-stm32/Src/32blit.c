@@ -10,7 +10,7 @@
 #include "gpio.hpp"
 #include "file.hpp"
 #include "jpeg.hpp"
-
+#include "DMA2D.hpp"
 
 #include "adc.h"
 #include "tim.h"
@@ -327,6 +327,8 @@ void blit_init() {
 
     blit::api.decode_jpeg_buffer = blit_decode_jpeg_buffer;
     blit::api.decode_jpeg_file = blit_decode_jpeg_file;
+
+    blit::api.dma2d_clear = blit_dma2d_clear;
 
 
   display::init();

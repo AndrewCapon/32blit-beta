@@ -7,6 +7,8 @@
 
 #include "surface.hpp"
 
+#include "../engine/api_private.hpp"
+
 namespace blit {
 
   /**
@@ -16,6 +18,11 @@ namespace blit {
     rectangle(clip);
   }
 
+#ifdef TARGET_32BLIT_HW
+  void Surface::dma2d_clear() {
+    api.dma2d_clear(this);
+  }
+#endif
   /**
    * Draw a filled rectangle in the current pen colour.
    *

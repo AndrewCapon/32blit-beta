@@ -126,8 +126,11 @@ namespace blit {
     __attribute__((always_inline)) inline uint32_t offset(const Point &p) { return p.x + p.y * bounds.w; }
     __attribute__((always_inline)) inline uint32_t offset(const int32_t &x, const int32_t &y) { return x + y * bounds.w; }
 
-    void generate_mipmaps(uint8_t depth);
+#ifdef TARGET_32BLIT_HW
+    void dma2d_clear();
+#endif
 
+    void generate_mipmaps(uint8_t depth);
     void clear();
     void pixel(const Point &p);
     void v_span(Point p, int16_t c);

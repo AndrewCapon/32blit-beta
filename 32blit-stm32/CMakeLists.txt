@@ -90,6 +90,7 @@ list(APPEND SOURCES
 	Src/CDCInfoHandler.cpp 
 	Src/USBManager.cpp
 	Utilities/JPEG/jpeg_utils.c
+  Src/DMA2d.cpp
 )
 
 set_source_files_properties(

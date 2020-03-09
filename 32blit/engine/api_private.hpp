@@ -52,6 +52,9 @@ namespace blit {
     JPEGImage (*decode_jpeg_buffer)(uint8_t *ptr, uint32_t len);
     JPEGImage (*decode_jpeg_file)(std::string filename);
 
+    // HAL2d
+    bool (*dma2d_clear)(Surface *pSurface);
+
   };
   #pragma pack(pop)
 

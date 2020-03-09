@@ -20,21 +20,22 @@
 
 using namespace blit;
 
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 240
+#define SCREEN_WIDTH 160
+#define SCREEN_HEIGHT 120
 
 Profiler 			g_profiler; // global uRunningAverageSize and uRunningAverageSpan could be set here.
 ProfilerProbe *g_pRenderProbe;
 ProfilerProbe *g_pClearProbe;
+ProfilerProbe *g_pDma2dClearProbe;
 ProfilerProbe *g_pRectProbe;
 ProfilerProbe *g_pCircleProbe;
 ProfilerProbe *g_pUpdateProbe;
 
 
-uint32_t g_uSize = 2;
-uint32_t g_uSizeMax	= SCREEN_HEIGHT-1;
-uint32_t g_uSizeMin	= 2;
-uint32_t g_uSizeChange = 1;
+uint32_t g_uSize = 2<<16;
+uint32_t g_uSizeMax	= (SCREEN_HEIGHT-1)<<16;
+uint32_t g_uSizeMin	= 2<<16;
+uint32_t g_uSizeChange = 1<<16;
 
 bool g_bGraphEnabled   = true;
 bool g_bLabelsEnabled  = true;
@@ -60,7 +61,7 @@ void SetupMetrics()
 
 void init()
 {
-	set_screen_mode(ScreenMode::hires);
+	set_screen_mode(ScreenMode::lores);
 
 	// set up profiler
 	g_profiler.set_display_size(SCREEN_WIDTH, SCREEN_HEIGHT);
@@ -71,6 +72,7 @@ void init()
 	// create probes
 	g_pRenderProbe 	= g_profiler.add_probe("Render", 300); 	// 300 frames of history
 	g_pClearProbe 	= g_profiler.add_probe("Clear", 50, 6); 	// Example of lower resolution, 50 samples with a span of 6 = 300 frames
+	g_pDma2dClearProbe 	= g_profiler.add_probe("DMA2d Clear", 300); 	// Example of lower resolution, 50 samples with a span of 6 = 300 frames
 	g_pRectProbe 		= g_profiler.add_probe("Rectangle", 300);
 	g_pCircleProbe 	= g_profiler.add_probe("Circle", 300);
 	g_pUpdateProbe 	= g_profiler.add_probe("Update");
@@ -168,18 +170,23 @@ void render(uint32_t time)
   screen.clear();
   g_pClearProbe->store_elapsed_us();
 
+	g_pDma2dClearProbe->start();
+  screen.pen = Pen(255, 0, 0, 30);
+  //screen.dma2d_clear();
+  g_pDma2dClearProbe->store_elapsed_us();
+
   // draw rect
   g_pRectProbe->start();
  	screen.pen = Pen(0,0,255,255);
- 	Point ptTl = Point(ptMiddle.x-(g_uSize/2), ptMiddle.y-(g_uSize/2));
- 	Point ptBr = Point(ptMiddle.x+(g_uSize/2), ptMiddle.y+(g_uSize/2));
+ 	Point ptTl = Point(ptMiddle.x-((g_uSize>>16)/2), ptMiddle.y-((g_uSize>>16)/2));
+ 	Point ptBr = Point(ptMiddle.x+((g_uSize>>16)/2), ptMiddle.y+((g_uSize>>16)/2));
   screen.rectangle(Rect(ptTl, ptBr));
   g_pRectProbe->store_elapsed_us();
 
   // draw circle
   g_pCircleProbe->start();
  	screen.pen = Pen(255,0,0,128);
-  screen.circle(ptMiddle, (g_uSizeMax-g_uSize)/2);
+  screen.circle(ptMiddle, ((g_uSizeMax>>16)-(g_uSize>>16))/2);
   g_pCircleProbe->store_elapsed_us();
 
 
@@ -205,6 +212,27 @@ void render(uint32_t time)
 
   // display the overlay
   g_profiler.display_probe_overlay(g_uPage);
+
+  // test pattern for lowres
+  screen.pen = Pen(255,0,0,255);
+  ptTl = Point(0,0);
+ 	ptBr = Point(160/2,120/2);
+  screen.rectangle(Rect(ptTl, ptBr));
+  
+  screen.pen = Pen(0,255,0,255);
+  ptTl = Point(160/2,0);
+ 	ptBr = Point(160,120/2);
+  screen.rectangle(Rect(ptTl, ptBr));
+
+  screen.pen = Pen(0,0,255,255);
+  ptTl = Point(0,120/2);
+ 	ptBr = Point(160/2,120);
+  screen.rectangle(Rect(ptTl, ptBr));
+
+  screen.pen = Pen(255,255,255,255);
+  ptTl = Point(160/2,120/2);
+ 	ptBr = Point(160,120);
+  screen.rectangle(Rect(ptTl, ptBr));
 
 }
 
