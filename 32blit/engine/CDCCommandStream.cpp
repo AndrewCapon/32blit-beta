@@ -32,7 +32,7 @@ void CDCCommandStream::Stream(void)
 			Stream(pElement->m_data, pElement->m_uLen);
 		ReleaseFifoReadElement();
 	}
-
+old bloody code!!!!
 	// restart USB CDC if fifo was full
 	if(m_bNeedsUSBResume && m_uFifoUsedCount == 0)
 	{
