@@ -52,9 +52,14 @@ namespace blit {
     JPEGImage (*decode_jpeg_buffer)(uint8_t *ptr, uint32_t len);
     JPEGImage (*decode_jpeg_file)(std::string filename);
 
+    // CDC Serial handling
+    void (*cdc_usb_resume)(uint8_t *pbuff);
+
     // HAL2d
     bool (*dma2d_clear)(Surface *pSurface);
-
+    void (*dma2d_RGBA_RGB)(const blit::Pen* pen, const blit::Surface* dest, uint32_t off, uint32_t cnt);
+    void (*dma2d_hires_flip)(const blit::Surface &source);
+    void (*dma2d_lores_flip)(const blit::Surface &source); 
   };
   #pragma pack(pop)
 
