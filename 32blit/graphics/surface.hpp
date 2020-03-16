@@ -79,6 +79,7 @@ namespace blit {
     Pen(int r, int g, int b, int a = 255) : r(r), g(g), b(b), a(a) {}
     Pen(float r, float g, float b, float a = 1.0f) : r((uint8_t)(r * 255.0f)), g((uint8_t)(g * 255.0f)), b((uint8_t)(b * 255.0f)), a((uint8_t)(a * 255.0f)) {}
   };
+
 #pragma pack(pop)
 
   struct Surface {
@@ -106,6 +107,7 @@ namespace blit {
     blit::BlitBlendFunc             bbf;
 
     std::vector<Surface *>          mipmaps;                  // TODO: probably too niche/specific to attach directly to surface
+    bool                            use_dma2d = false;
 
   private:
     void init();

@@ -2,8 +2,6 @@
 #include <cstring>
 
 #include "surface.hpp"
-#include "engine/api.hpp"
-#include "engine/api_private.hpp"
 
 #ifdef WIN32 
 #define __attribute__(A)
@@ -28,7 +26,7 @@ namespace blit {
     return d + ((a * (s - d) + 127) >> 8);    
   }
 
-__attribute__((always_inline)) inline void blend_rgba_rgb(const Pen *s, uint8_t *d, const uint8_t &a, uint32_t c) {      
+  __attribute__((always_inline)) inline void blend_rgba_rgb(const Pen *s, uint8_t *d, const uint8_t &a, uint32_t c) {      
     if (c == 1) { 
       // fast case for single pixel draw
       *d = blend(s->r, *d, a); d++;
@@ -138,112 +136,13 @@ __attribute__((always_inline)) inline void blend_rgba_rgb(const Pen *s, uint8_t 
     }
   }
 
-  __attribute__((always_inline)) inline void copy_rgba_rgb_opt(const Pen* s, uint8_t *d, uint32_t c) {
-    if (c == 1) { 
-      // fast case for single pixel draw
-      *(d + 0) = s->r; *(d + 1) = s->g; *(d + 2) = s->b; 
-      return;
-    }
-    
-    if (c <= 4) {
-      // fast case for small number of pixels
-      do {
-        *(d + 0) = s->r; *(d + 1) = s->g; *(d + 2) = s->b; d += 3;
-      } while (--c);      
-      return;
-    }    
-
-    // create packed 32bit source
-    // s32 now contains RGBA
-    uint32_t s32 = *((uint32_t*)(s));
-    // replace A with R so s32 is now RGBR
-    s32 = (s32 & 0x00ffffff) | ((s32 & 0x000000ff) << 24);
-
-    // if destination is not double-word aligned copy at most three bytes until it is
-    uint8_t* de = d + c * 3;
-    while (uint32_t(d) & 0b11) {
-      *d = s32 & 0xff000000; d++;
-      // rotate the aligned rgbr/gbrg/brgb quad
-      s32 >>= 8; s32 |= uint8_t(s32 & 0xff) << 24;
-    }
-        
-    // destination is now double-word aligned
-    if (d < de) {      
-      // get a double-word aligned pointer to the destination surface
-      uint32_t *d32 = (uint32_t*)d;
-
-
-      //copy 12 bytes at a time until we have fewer than 12 bytes remaining
-      uint32_t c96 = uint32_t(de - d) / 12;
-      if(c96)
-      {
-        uint32_t dw1 = s32;
-        uint32_t dw2 = dw1 >>8 | (uint16_t(dw1 & 0xff00) << 16);
-        uint32_t dw3 = dw2 >>8 | (uint16_t(dw2 & 0xff00) << 16);
-        while(c96--){
-          *d32++ = dw1;
-          *d32++ = dw2;
-          *d32++ = dw3;
-        }
-      }
-
-      // copy four bytes at a time until we have fewer than four bytes remaining
-      uint32_t c32 = uint32_t(de - (uint8_t *)d32) >> 2;
-      while (c32--) {
-        *d32++ = s32;
-        // rotate the aligned rgbr/gbrg/brgb quad        
-        s32 >>= 8; s32 |= uint8_t(s32 & 0xff) << 24;
-      }
-
-      // copy the trailing bytes as needed
-      d = (uint8_t*)de;
-      while (d < de) {
-        *d = (s32 & 0xff); s32 >>= 8; d++;
-      }
-    }
-
-    // // destination is now double-word aligned
-    // if (d < de) {      
-    //   // get a double-word aligned pointer to the destination surface
-    //   uint32_t *d32 = (uint32_t*)d;
-
-    //   // copy 12 bytes at a time
-    //   // uint32_t c96 = uint32_t(de - d) / 12;
-    //   // if(c96)
-    //   // {
-    //   //   uint32_t dw1 = s32;
-    //   //   uint32_t dw2 = dw1 >>8 | (uint8_t(dw1 & 0xff) << 24);
-    //   //   uint32_t dw3 = dw2 >>8 | (uint8_t(dw2 & 0xff) << 24);
-    //   //   while(c96--){
-    //   //     *d32++ = dw1;
-    //   //     *d32++ = dw2;
-    //   //     *d32++ = dw3;
-    //   //   }
-    //   // }
-
-    //   // copy four bytes at a time until we have fewer than four bytes remaining
-    //   uint32_t c32 = uint32_t((uint32_t *)de - d32) >> 2;
-      
-    //   while (c32--) {
-    //     *d32++ = s32;
-    //     // rotate the aligned rgbr/gbrg/brgb quad        
-    //     s32 >>= 8; s32 |= uint8_t(s32 & 0xff) << 24;
-    //   }
-
-    //   // copy the trailing bytes as needed
-    //   d = (uint8_t*)d32;
-    //   while (d < de) {
-    //     *d = (s32 & 0xff); s32 >>= 8; d++;
-    //   }
-    // }
-  }
-
   void RGBA_RGBA(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt) {
     uint8_t* d = dest->data + (off * 4);
     uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;    
 
+    uint16_t a1 = alpha(pen->a, dest->alpha);
     do {
-      uint16_t a = m ? alpha(pen->a, *m++, dest->alpha) : alpha(pen->a, dest->alpha);
+      uint16_t a = m ? alpha(a1, *m++) : a1;
 
       if (a >= 255) {
         *d++ = pen->r; *d++ = pen->g; *d++ = pen->b; *d++ = 255;
@@ -258,71 +157,6 @@ __attribute__((always_inline)) inline void blend_rgba_rgb(const Pen *s, uint8_t 
     } while (--cnt);
   }
 
-  void RGBA_RGB_OPTIMIZED(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt) {
-     uint8_t* d = dest->data + (off * 3);
-     uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;    
-
-    if(m)
-     {
-     	do {
- 				uint16_t a = alpha(pen->a, *m++, dest->alpha);
-
-  				if (a >= 255) {
- 					*d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
- 				} else if (a > 0) {
- 					*d = blend(pen->r, *d, a); d++;
- 					*d = blend(pen->g, *d, a); d++;
- 					*d = blend(pen->b, *d, a); d++;
- 				}else{
- 					d += 3;
- 				}
- 			} while (--cnt);
-     }
-     else
-     {
-     	uint16_t a = alpha(pen->a, dest->alpha);
-     	if (a >= 255)
-     	{
-     		uint32_t uDuals = (cnt/2);
-     		if(uDuals)
-     		{
-      			// messed up endianess
-     			uint16_t uW1 = (pen->g<<8) | pen->r;
-     			uint16_t uW2 = (pen->r<<8) | pen->b;
-     			uint16_t uW3 = (pen->b<<8) | pen->g;
-
-      		uint16_t *pD = (uint16_t *)d;
-
-      		while(uDuals--)
-     			{
-     				*pD++ = uW1;
-     				*pD++ = uW2;
-     				*pD++ = uW3;
-     			}
-     			cnt = cnt%2;
-     			d = (uint8_t *)pD;
-     		}
-
-      		while(cnt--)
-     		{
-           *d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
-     		}
-     	}
-     	else
-     	{
-     		if(a >= 0)
-     		{
-     			while(cnt--)
-     			{
-             *d = blend(pen->r, *d, a); d++;
-             *d = blend(pen->g, *d, a); d++;
-             *d = blend(pen->b, *d, a); d++;
-     			}
-     		}
-     	}
-     }
-   }
-
   void RGBA_RGB(const Pen* pen, const Surface* dest, uint32_t off, uint32_t c) {
     uint8_t* d = dest->data + (off * 3);
     uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;    
@@ -332,17 +166,11 @@ __attribute__((always_inline)) inline void blend_rgba_rgb(const Pen *s, uint8_t 
       // no mask
       if (a >= 255) {
         // no alpha, just copy
-        if(dest->use_dma2d)
-          blit::api.dma2d_RGBA_RGB(pen, dest, off, c);
-        else
-          copy_rgba_rgb_opt(pen, d, c);
+        copy_rgba_rgb(pen, d, c);
       }
       else {
         // alpha, blend
-        if(dest->use_dma2d)
-          blit::api.dma2d_RGBA_RGB(pen, dest, off, c);
-        else
-          blend_rgba_rgb(pen, d, a, c);
+        blend_rgba_rgb(pen, d, a, c);
       }
     } else {
       // mask enabled, slow blend
@@ -353,34 +181,6 @@ __attribute__((always_inline)) inline void blend_rgba_rgb(const Pen *s, uint8_t 
       } while (--c);
     }
   }
-
-  // void RGBA_RGB(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt) {
-  //   uint8_t* d = dest->data + (off * 3);
-  //   uint8_t* m = dest->mask ? dest->mask->data + off : nullptr;    
-  
-  //   bool bUseDMA2D = dest->use_dma2d && (m ==nullptr);
-
-  //   if(bUseDMA2D)
-  //   {
-  //     blit::api.dma2d_RGBA_RGB(pen, dest, off, cnt);
-  //   }
-  //   else
-  //   {
-  //     do {
-  //       uint16_t a = m ? alpha(pen->a, *m++, dest->alpha) : alpha(pen->a, dest->alpha);
-
-  //       if (a >= 255) {
-  //         *d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
-  //       } else if (a > 0) {
-  //         *d = blend(pen->r, *d, a); d++;
-  //         *d = blend(pen->g, *d, a); d++;
-  //         *d = blend(pen->b, *d, a); d++;
-  //       }else{
-  //         d += 3;
-  //       }       
-  //     } while (--cnt);
-  //   }
-  // }
 
   void P_P(const Pen* pen, const Surface* dest, uint32_t off, uint32_t cnt) {
     uint8_t* d = dest->data + off;
@@ -432,46 +232,23 @@ __attribute__((always_inline)) inline void blend_rgba_rgb(const Pen *s, uint8_t 
     uint8_t* d = dest->data + (doff * 3);
     uint8_t* m = dest->mask ? dest->mask->data + doff : nullptr;    
 
-    if(m)
-    {
-      do {
-        Pen *pen = src->palette ? &src->palette[*s] : (Pen *)s;
+    do {
+      Pen *pen = src->palette ? &src->palette[*s] : (Pen *)s;
 
-        uint16_t a = alpha(pen->a, *m++, dest->alpha);
+      uint16_t a = m ? alpha(pen->a, *m++, dest->alpha) : alpha(pen->a, dest->alpha);
 
-        if (a >= 255) {
-          *d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
-        } else if (a > 0) {
-          *d = blend(pen->r, *d, a); d++;
-          *d = blend(pen->g, *d, a); d++;
-          *d = blend(pen->b, *d, a); d++;
-        }else{
-          d += 3;
-        }       
+      if (a >= 255) {
+        *d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
+      } else if (a > 0) {
+        *d = blend(pen->r, *d, a); d++;
+        *d = blend(pen->g, *d, a); d++;
+        *d = blend(pen->b, *d, a); d++;
+      }else{
+        d += 3;
+      }       
 
-        s += src->palette ? 1 : 4;
-      } while (--cnt);
-    }
-    else
-    {
-      do {
-        Pen *pen = src->palette ? &src->palette[*s] : (Pen *)s;
-
-        uint16_t a = m ? alpha(pen->a, *m++, dest->alpha) : alpha(pen->a, dest->alpha);
-
-        if (a >= 255) {
-          *d++ = pen->r; *d++ = pen->g; *d++ = pen->b;
-        } else if (a > 0) {
-          *d = blend(pen->r, *d, a); d++;
-          *d = blend(pen->g, *d, a); d++;
-          *d = blend(pen->b, *d, a); d++;
-        }else{
-          d += 3;
-        }       
-
-        s += src->palette ? 1 : 4;
-      } while (--cnt);
-    }
+      s += src->palette ? 1 : 4;
+    } while (--cnt);
   }
 
   void P_P(const Surface* src, uint32_t soff, const Surface* dest, uint32_t doff, uint32_t cnt, int32_t src_step) {
